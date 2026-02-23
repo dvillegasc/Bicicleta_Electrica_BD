@@ -5,7 +5,7 @@ library(ggplot2)
 library(plotly)
 
 # Carga de datos
-datos <- read.csv2("C:/Users/davil/Desktop/Datos_Bici_Imputados_Motor.csv")
+datos <- read.csv2("C:/Users/Joven Investigador/OneDrive - Universidad de Antioquia/Escritorio/Datos_Bici_Imputados_Motor.csv")
 
 
 # Filtrar día 20220909
@@ -13,8 +13,11 @@ dia_analisis <- datos %>%
   filter(fecha == 20220909)
 
 
-# FILTROS DE ANOMALÍAS (Sanity Checks físicos con dplyr)
-# booleano
+# Filtros
+
+
+# Anomalias--------------------------------------------------------------------------------------
+
 anomalias <- dia_analisis %>%
   mutate(
     # Batería 36V (Vacía < 30V, Llena > 42.5V)
@@ -38,6 +41,53 @@ cat("Anomalías físicas detectadas el 20220909:", nrow(anomalias), "\n")
 if(nrow(anomalias) > 0) {
   print(head(anomalias %>% select(new_time, VOLTAGE_A, CURRENT_A_CALC, TEMPERATURE_A)))
 }
+
+# Continuidad---------------------------------------------------------------------------------
+
+datos_continuidad <- dia_analisis %>%
+  mutate(
+    # Verificación para 'tiempo'
+    ok_tiempo = tiempo == lag(tiempo, default = first(tiempo) - 1) + 1,
+    
+    # Verificación para 'new_time'
+    ok_new_time = new_time == lag(new_time, default = first(new_time) - 1) + 1,
+    
+    # Identificar filas donde hubo cualquier ruptura
+    hay_salto = !ok_tiempo | !ok_new_time
+  )
+
+# Para ver solo las filas donde la secuencia se rompió:
+errores <- datos_continuidad %>% 
+  filter(hay_salto)
+
+
+cat("Filas discontinuas:", nrow(errores), "\n")
+cat("Lista de discontinuas")
+errores
+
+# Cambios abruptos sin sentido en la temperatura -----------------------------------------------
+
+umbral_cambio <- 2
+dia_analisis$ENV_TEMPERATURE <- as.numeric(dia_analisis$ENV_TEMPERATURE)
+
+cambios_temp <- dia_analisis %>%
+  mutate(
+    # diferencia con la fila anterior
+    dif_temp = abs(ENV_TEMPERATURE - lag(ENV_TEMPERATURE)),
+    
+    # es cambio si supera el umbral
+    alerta_temp = if_else(dif_temp > umbral_cambio, "Anomalía", "Normal")) %>%
+  
+  # Reemplazamos el NA de la primera fila (que no tiene anterior)
+  mutate(alerta_temp = if_else(is.na(alerta_temp), "Inicio", alerta_temp))
+
+# Para visualizar solo los registros problemáticos
+anomalias <- cambios_temp %>% 
+  filter(alerta_temp == "Anomalía")
+
+
+cat("Las anomalias son:")
+anomalias
 
 
 #----------------------------------- Graficas--------------------------------------
