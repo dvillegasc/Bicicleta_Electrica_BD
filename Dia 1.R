@@ -2,6 +2,7 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(plotly)
 
 # Carga de datos
 datos <- read.csv2("C:/Users/davil/Desktop/Datos_Bici_Imputados_Motor.csv")
@@ -12,58 +13,51 @@ dia_analisis <- datos %>%
   filter(fecha == 20220909)
 
 
-# 3. FILTROS DE ANOMALÍAS (Sanity Checks físicos con dplyr)
-# Se crean banderas booleanas (TRUE/FALSE) si el dato rompe las leyes del hardware
+# FILTROS DE ANOMALÍAS (Sanity Checks físicos con dplyr)
+# booleano
 anomalias <- dia_analisis %>%
   mutate(
-    # Límite físico de la batería 36V (Vacía < 30V, Llena > 42.5V)
+    # Batería 36V (Vacía < 30V, Llena > 42.5V)
     falla_voltaje = if_else(VOLTAGE_A < 28 | VOLTAGE_A > 43, TRUE, FALSE),
     
-    # Límite del controlador para motor de 350W (Picos máx ~18-20A)
+    # Motor de 350W (Picos máx ~18-20A)
     falla_corriente = if_else(CURRENT_A_CALC < 0 | CURRENT_A_CALC > 20, TRUE, FALSE),
     
     # Límite térmico del Litio-ion y clima de Medellín
     falla_temperatura = if_else(TEMPERATURE_A < 10 | TEMPERATURE_A > 65, TRUE, FALSE),
     
-    # Falla dinámica: Es imposible tener un pico alto de corriente sin que el voltaje caiga (Voltage Sag)
+    # Es imposible tener un pico alto de corriente sin que el voltaje caiga (Voltage Sag)
     # Si la corriente pasa de 15A y el voltaje sigue por encima de 40V, el sensor miente.
     falla_dinamica = if_else(CURRENT_A_CALC > 15 & VOLTAGE_A > 40, TRUE, FALSE)
   ) %>%
   # Filtrar solo las filas que tengan al menos un error
   filter(falla_voltaje | falla_corriente | falla_temperatura | falla_dinamica)
 
-# Imprimir el recuento de errores detectados
+# Imprimir errores detectados
 cat("Anomalías físicas detectadas el 20220909:", nrow(anomalias), "\n")
 if(nrow(anomalias) > 0) {
   print(head(anomalias %>% select(new_time, VOLTAGE_A, CURRENT_A_CALC, TEMPERATURE_A)))
 }
 
-# 4. VISUALIZACIÓN EXPLORATORIA
-# Pivotear los datos para alinear las gráficas temporalmente (comparación directa)
-dia_grafico <- dia_analisis %>%
-  select(new_time, VOLTAGE_A, CURRENT_A_CALC, TEMPERATURE_A) %>%
-  pivot_longer(cols = -new_time, names_to = "Variable", values_to = "Valor")
 
-# Graficar usando facetas
-ggplot(dia_grafico, aes(x = new_time, y = Valor, color = Variable)) +
-  geom_line() +
-  facet_wrap(~Variable, scales = "free_y", ncol = 1) +
-  theme_minimal() +
-  labs(
-    title = "Análisis de Telemetría: Batería (Canal A) - Fecha: 20220909",
-    subtitle = "Cruzar caídas de voltaje con picos de corriente",
-    x = "Tiempo Estándar (new_time)",
-    y = "Valor medido"
-  ) +
-  theme(
-    legend.position = "none",
-    strip.text = element_text(face = "bold", size = 10)
+#----------------------------------- Graficas--------------------------------------
+
+grafica_interactiva <- plot_ly(data = dia_analisis, 
+                               x = ~new_time, 
+                               y = ~CURRENT_A_CALC, 
+                               type = 'scatter', 
+                               mode = 'lines',
+                               line = list(color = 'red', width = 1.5),
+                               name = 'Corriente A') %>%
+  layout(
+    title = "Serie de Tiempo Interactiva: Corriente de Batería (Día 20220909)",
+    xaxis = list(title = "Tiempo (new_time)", 
+                 rangeslider = list(visible = TRUE)), # Agrega una barra de desplazamiento temporal
+    yaxis = list(title = "Corriente A (Amperios)", 
+                 range = c(-2, 400)) # AQUÍ ESTÁ LA MAGIA: Límites físicos del eje Y
   )
 
-
-
-
-
-
+# Mostrar la gráfica
+grafica_interactiva
 
 
