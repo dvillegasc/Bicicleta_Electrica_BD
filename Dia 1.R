@@ -11,7 +11,7 @@ datos <- read.csv2("C:/Users/davil/Desktop/Datos_Bici_Imputados_Motor.csv")
 
 # Filtrar día 20220909
 dia_analisis <- datos %>%
-  filter(fecha == 20220909)
+  filter(fecha == 20220911)
 
 
 # Filtros
@@ -24,13 +24,13 @@ anomalias <- dia_analisis %>%
     # Batería 36V (Vacía < 30V, Llena > 42.5V)
     falla_voltaje = if_else(VOLTAGE_A < 28 | VOLTAGE_A > 43, TRUE, FALSE),
     
-    # Motor de 350W (Picos máx ~18-20A)
+    # Motor de 350W (Este lo tengo que verificar bien) (rangos de la corriente - (A)bateria)
     falla_corriente = if_else(CURRENT_A_CALC < 0 | CURRENT_A_CALC > 20, TRUE, FALSE),
     
     # Límite térmico del Litio-ion y clima de Medellín
     falla_temperatura = if_else(TEMPERATURE_A < (ENV_TEMPERATURE - 2) | (TEMPERATURE_A - ENV_TEMPERATURE) > 35, TRUE, FALSE),
     
-    # Es imposible tener un pico alto de corriente sin que el voltaje caiga (Voltage Sag)
+    # Un pico alto de corriente sin que el voltaje caiga (Voltage Sag)
     # Si la corriente pasa de 15A y el voltaje sigue por encima de 40V, el sensor miente.
     falla_dinamica = if_else(CURRENT_A_CALC > 15 & VOLTAGE_A > 40, TRUE, FALSE)
   ) %>%
@@ -92,7 +92,7 @@ anomalias <- cambios_temp %>%
 
 
 cat("Las anomalias son:")
-
+anomalias
 if(nrow(anomalias) > 0) {
   print(head(errores %>% select(ENV_TEMPERATURE)))
 }
@@ -167,4 +167,8 @@ grafica_correlacion <- ggplot(df_corr, aes(x = Variable1, y = Variable2, fill = 
   coord_fixed() 
 
 print(grafica_correlacion)
+
+
+(Hacer un porcentaje de datos faltantes por variable)
+
 
