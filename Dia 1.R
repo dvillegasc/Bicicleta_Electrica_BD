@@ -169,6 +169,4 @@ grafica_correlacion <- ggplot(df_corr, aes(x = Variable1, y = Variable2, fill = 
 print(grafica_correlacion)
 
 
-(Hacer un porcentaje de datos faltantes por variable)
-
 
