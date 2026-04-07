@@ -6,15 +6,27 @@ library(ggplot2)
 
 datos_bici <- read.csv("C:/Users/davil/Desktop/Dataset_BicicletasElectricas.csv", sep = ";")
 
-#PALMAS
+# PALMAS
+
 # Filtro del dia 13 de septiembre de 2022
 datos_dia <- datos_bici %>% filter(fecha == 20220913)
 
+# Para saber la ruta
+datos_dia$lugar[1]
+
+# Para saber que experimentos
+unique(datos_dia$exp)
+
+# Para contar anomalias
+numfallas <- datos_dia %>% 
+  filter(anomaly == -1)
+nrow(numfallas)
 
 # ==============================================================================
-# Funcion para Serie de Tiempo 
+# Funciones para las Series de Tiempo 
 
-graficar_serie <- function(datos, experimento) {
+# Serie de tiempo - Variables A-----------------------------------
+graficar_serie1 <- function(datos, experimento) {
   
   # Filtrar el experimento  y ordenar por tiempo
   df_exp <- datos %>% 
@@ -46,7 +58,93 @@ graficar_serie <- function(datos, experimento) {
     add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_A,
                 marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
                 text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
-    layout(yaxis = list(title = "Voltaje (V)"))
+    layout(yaxis = list(title = "Voltaje (A)"))
+  
+  # Unir las tres gráficas en un solo panel alineado por el tiempo
+  subplot(p1, p2, p3, nrows = 3, shareX = TRUE, titleY = TRUE) %>%
+    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220913 | Exp:", experimento),
+           xaxis = list(title = "Linea de Tiempo (new_time)"),
+           hovermode = "x unified")
+}
+
+
+# Series de Tiempo CURRENT B,C,D-----------------------------
+graficar_serie2 <- function(datos, experimento) {
+  
+  # Filtrar el experimento  y ordenar por tiempo
+  df_exp <- datos %>% 
+    filter(exp == experimento) %>% 
+    arrange(new_time)
+  
+  df_fallas <- df_exp %>% 
+    filter(anomaly == -1)
+  
+  # Grafica 1: Current B
+  p1 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~CURRENT_B_CALC, name = "Corriente B", line = list(color = 'orange')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~CURRENT_B_CALC,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Corriente (B)"))
+  
+  # Grafica 2: Current C
+  p2 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~CURRENT_C_CALC, name = "Corriente C", line = list(color = 'green')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~CURRENT_C_CALC,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Corriente (C)"))
+  
+  # Grafica 3: Current D
+  p3 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~CURRENT_D_CALC, name = "Corriente D", line = list(color = 'blue')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~CURRENT_D_CALC,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Corriente (D)"))
+  
+  # Unir las tres gráficas en un solo panel alineado por el tiempo
+  subplot(p1, p2, p3, nrows = 3, shareX = TRUE, titleY = TRUE) %>%
+    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220913 | Exp:", experimento),
+           xaxis = list(title = "Linea de Tiempo (new_time)"),
+           hovermode = "x unified")
+}
+
+
+# Series de Tiempo VOLTAGE B,C,D --------------------
+graficar_serie3 <- function(datos, experimento) {
+  
+  # Filtrar el experimento  y ordenar por tiempo
+  df_exp <- datos %>% 
+    filter(exp == experimento) %>% 
+    arrange(new_time)
+  
+  df_fallas <- df_exp %>% 
+    filter(anomaly == -1)
+  
+  # Grafica 1: Voltage B
+  p1 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~VOLTAGE_B, name = "Voltage B", line = list(color = 'orange')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_B,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Voltage (B)"))
+  
+  # Grafica 2: Voltage C
+  p2 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~VOLTAGE_C, name = "Voltage C", line = list(color = 'green')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_C,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Voltage (C)"))
+  
+  # Grafica 3: Voltage D
+  p3 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~VOLTAGE_D, name = "Voltage D", line = list(color = 'blue')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_D,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Voltaje (D)"))
   
   # Unir las tres gráficas en un solo panel alineado por el tiempo
   subplot(p1, p2, p3, nrows = 3, shareX = TRUE, titleY = TRUE) %>%
@@ -107,41 +205,19 @@ matriz_cor <- function(datos_dia, experimento) {
 # EXPERIMENTO E01
 
 # Series de tiempo
-serie_E01 <- graficar_serie(datos_dia, "E01")
-print(serie_E01)
-# Respecto a este dia, en la bitacora se reporto esto: 
-#   - Se presenta incidencia con la tarjeta ya que no prende por el desprendimiento 
-#     de un componente interno
+serie1_E01 <- graficar_serie1(datos_dia, "E01")
+serie2_E01 <- graficar_serie2(datos_dia, "E01")
+serie3_E01 <- graficar_serie3(datos_dia, "E01")
 
-#   - Se presenta un recalentamiento a las 9:30, se rompe el pedal izquierdo 
-#     y se cambia toda la biela del pedal por la de la B02, se rompen los otros dos 
-#     soportes de la tapa de la tarjeta
+print(serie1_E01)
+print(serie2_E01)
+print(serie3_E01)
+# Respecto a este experimento, ¿la bitacora reporto?: Si. Recalentamiento, rotura de pedal, cambio de biela y daño en soportes de la tarjeta.
 
-#----------Analisis----------
-
-# En el tiempo 492 hubo una caida en la temperatura, en la corriente y una subida 
-# en el voltaje, pareciendo como si hubo una desconexion del sensor mientras iba en una 
-# pendiente en palmas, por dicha razon cayeron la temperatura y la corriente
-# pero el voltaje subio porque se recupero de la caida de tension, volviendo a su valor en 
-# reposo.
 
 # Matrices de correlacion
 matrices_E01 <- matriz_cor(datos_dia, "E01")
 print(matrices_E01$matriz_sin_anomalias)
-# La matriz presenta un comportamiento normal, tal como deberia ser.
-
 print(matrices_E01$matriz_anomalias)
-# Se presentan correlaciones raras:
-#   La correlacion entre los current son negativas (deberian ser positivas)
-#   Las correlacxiones de current_A con los voltajes estan MAL.
-#   Las correlaciones entre los voltajes y la temperatura son muy bajos.
-#   Las correlaciones entre los current y los voltage son positivas y bajas,
-#   No deberia ser asi, estas deberian ser nagativas.
-
-# Estas fallas observadas en las correlaciones son las que explican las anomalias
-# vistas en las series de tiempo.
-
-
-
 
 

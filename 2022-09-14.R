@@ -7,14 +7,26 @@ library(ggplot2)
 datos_bici <- read.csv("C:/Users/davil/Desktop/Dataset_BicicletasElectricas.csv", sep = ";")
 
 # PALMAS
-# Filtro del dia 09 de septiembre de 2022
+
+# Filtro del dia 14 de septiembre de 2022
 datos_dia <- datos_bici %>% filter(fecha == 20220914)
 
+# Para saber la ruta
+datos_dia$lugar[1]
+
+# Para saber que experimentos
+unique(datos_dia$exp)
+
+# Para contar anomalias
+numfallas <- datos_dia %>% 
+  filter(anomaly == -1)
+nrow(numfallas)
 
 # ==============================================================================
-# Funcion para Serie de Tiempo 
+# Funciones para las Series de Tiempo 
 
-graficar_serie <- function(datos, experimento) {
+# Serie de tiempo - Variables A-----------------------------------
+graficar_serie1 <- function(datos, experimento) {
   
   # Filtrar el experimento  y ordenar por tiempo
   df_exp <- datos %>% 
@@ -46,9 +58,91 @@ graficar_serie <- function(datos, experimento) {
     add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_A,
                 marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
                 text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
-    layout(yaxis = list(title = "Voltaje (V)"))
+    layout(yaxis = list(title = "Voltaje (A)"))
   
   # Unir las tres gráficas en un solo panel alineado por el tiempo
+  subplot(p1, p2, p3, nrows = 3, shareX = TRUE, titleY = TRUE) %>%
+    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220914 | Exp:", experimento),
+           xaxis = list(title = "Linea de Tiempo (new_time)"),
+           hovermode = "x unified")
+}
+
+
+# Series de Tiempo CURRENT B,C,D-----------------------------
+graficar_serie2 <- function(datos, experimento) {
+  
+  df_exp <- datos %>% 
+    filter(exp == experimento) %>% 
+    arrange(new_time)
+  
+  df_fallas <- df_exp %>% 
+    filter(anomaly == -1)
+  
+  # Grafica 1: Current B
+  p1 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~CURRENT_B_CALC, name = "Corriente B", line = list(color = 'orange')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~CURRENT_B_CALC,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Valor:", CURRENT_B_CALC, "A<br>Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Corriente (B)"))
+  
+  # Grafica 2: Current C
+  p2 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~CURRENT_C_CALC, name = "Corriente C", line = list(color = 'green')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~CURRENT_C_CALC,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Valor:", CURRENT_C_CALC, "A<br>Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Corriente (C)"))
+  
+  # Grafica 3: Current D
+  p3 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~CURRENT_D_CALC, name = "Corriente D", line = list(color = 'blue')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~CURRENT_D_CALC,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Valor:", CURRENT_D_CALC, "A<br>Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Corriente (D)"))
+  
+  subplot(p1, p2, p3, nrows = 3, shareX = TRUE, titleY = TRUE) %>%
+    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220914 | Exp:", experimento),
+           xaxis = list(title = "Linea de Tiempo (new_time)"),
+           hovermode = "x unified")
+}
+
+
+# Series de Tiempo VOLTAGE B,C,D --------------------
+graficar_serie3 <- function(datos, experimento) {
+  
+  df_exp <- datos %>% 
+    filter(exp == experimento) %>% 
+    arrange(new_time)
+  
+  df_fallas <- df_exp %>% 
+    filter(anomaly == -1)
+  
+  # Grafica 1: Voltage B
+  p1 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~VOLTAGE_B, name = "Voltage B", line = list(color = 'orange')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_B,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Valor:", VOLTAGE_B, "V<br>Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Voltaje (B)"))
+  
+  # Grafica 2: Voltage C
+  p2 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~VOLTAGE_C, name = "Voltage C", line = list(color = 'green')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_C,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Valor:", VOLTAGE_C, "V<br>Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Voltaje (C)"))
+  
+  # Grafica 3: Voltage D
+  p3 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~VOLTAGE_D, name = "Voltage D", line = list(color = 'blue')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_D,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Valor:", VOLTAGE_D, "V<br>Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Voltaje (D)"))
+  
   subplot(p1, p2, p3, nrows = 3, shareX = TRUE, titleY = TRUE) %>%
     layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220914 | Exp:", experimento),
            xaxis = list(title = "Linea de Tiempo (new_time)"),
@@ -90,9 +184,8 @@ matriz_cor <- function(datos_dia, experimento) {
     filter(anomaly == 1) %>% 
     select(all_of(vars_criticas))
   
+  matriz_sin_anomalias <- crear_matriz(df_sanos, paste("Matriz sin anomalias - Exp:", experimento, "- 14 sep"))
   
-  matriz_sin_anomalias <- crear_matriz(df_sanos, paste("Matriz sin anomalias - Exp:", experimento, "- 14 Sep"))
-
   return(list(matriz_sin_anomalias = matriz_sin_anomalias))
   
 }
@@ -103,55 +196,36 @@ matriz_cor <- function(datos_dia, experimento) {
 # EXPERIMENTO E01
 
 # Series de tiempo
-serie_E01 <- graficar_serie(datos_dia, "E01")
-print(serie_E01)
-# Respecto a este experimento, en la bitacora reporto:
+serie1_E01 <- graficar_serie1(datos_dia, "E01")
+serie2_E01 <- graficar_serie2(datos_dia, "E01")
+serie3_E01 <- graficar_serie3(datos_dia, "E01")
 
-# - Se presentan 3 recalentamientos, a las 9:28 am, 9:31 am y 9:37 am
-# - Suben datos de carga hasta las 12:10
+print(serie1_E01)
+print(serie2_E01)
+print(serie3_E01)
+# Respecto a este experimento, ¿la bitacora reporto?: No
 
-#-------------Analisis-----------
-
-# En el tiempo 957 hubo una caida en la temperatura, en la corriente y una subida 
-# en el voltaje, pareciendo como si hubo una desconexion del sensor mientras iba en una 
-# pendiente en palmas, por dicha razon cayeron la temperatura y la corriente
-# pero el voltaje subio porque se recupero de la caida de tension, volviendo a su valor en 
-# reposo. 
-
-# ???
 
 # Matrices de correlacion
 matrices_E01 <- matriz_cor(datos_dia, "E01")
 print(matrices_E01$matriz_sin_anomalias)
-# Se observa:
-
-# La correlacion de current_A con los voltajes A,B,C,D esta mal, es practicamente nula,
-# lo mismo pasa entre los demas current y voltage.
-
 
 
 # ==============================================================================
-# EXPERIMENTO E02 
+# EXPERIMENTO E02
 
 # Series de tiempo
-serie_E02 <- graficar_serie(datos_dia, "E02")
-print(serie_E02)
-# Respecto a este experimento, en la bitacora reporto:
+serie1_E02 <- graficar_serie1(datos_dia, "E02")
+serie2_E02 <- graficar_serie2(datos_dia, "E02")
+serie3_E02 <- graficar_serie3(datos_dia, "E02")
 
-# - A las 16:14, por presencia de lluvia, en hato viejo, se devuelve Juan Camilo, 
-#   apaga la tarjeta y la vuelve a prender. A las 16:32 llega y se descarga la bici 
-#   en el taller con ayuda de los rodamientos hasta las 4:51 pm
-# - La carga se deja programada para 5 horas y 30 minutos
+print(serie1_E02)
+print(serie2_E02)
+print(serie3_E02)
+# Respecto a este experimento, ¿la bitacora reporto?: No
 
-#--------------Analisis----------------
-
-# Presenta un comportamiento normal sin anomalias, con el simple detalle de que
-# en el tiempo 340 bajo casi hasta 0 la corriente, para luego en 256 volver a subir.
 
 # Matrices de correlacion
 matrices_E02 <- matriz_cor(datos_dia, "E02")
 print(matrices_E02$matriz_sin_anomalias)
-# En la matriz pasa exactamente lo mismo que en E01.
-
-
 

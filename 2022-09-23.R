@@ -6,18 +6,18 @@ library(ggplot2)
 
 datos_bici <- read.csv("C:/Users/davil/Desktop/Dataset_BicicletasElectricas.csv", sep = ";")
 
-# PALMAS
+# METROPLUS Y LABORATORIO
 
-# Filtro del dia 09 de septiembre de 2022
-datos_dia <- datos_bici %>% filter(fecha == 20220909)
+# Filtro del dia 23 de septiembre de 2022
+datos_dia <- datos_bici %>% filter(fecha == 20220923)
 
 # Para saber la ruta
-datos_dia$lugar[1]
+unique(datos_dia$lugar)
 
 # Para saber que experimentos
 unique(datos_dia$exp)
 
-# Para contar anomalias
+# Para contar anomalias globales del día
 numfallas <- datos_dia %>% 
   filter(anomaly == -1)
 nrow(numfallas)
@@ -28,7 +28,6 @@ nrow(numfallas)
 # Serie de tiempo - Variables A-----------------------------------
 graficar_serie1 <- function(datos, experimento) {
   
-  # Filtrar el experimento  y ordenar por tiempo
   df_exp <- datos %>% 
     filter(exp == experimento) %>% 
     arrange(new_time)
@@ -60,9 +59,8 @@ graficar_serie1 <- function(datos, experimento) {
                 text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
     layout(yaxis = list(title = "Voltaje (A)"))
   
-  # Unir las tres gráficas en un solo panel alineado por el tiempo
   subplot(p1, p2, p3, nrows = 3, shareX = TRUE, titleY = TRUE) %>%
-    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220909 | Exp:", experimento),
+    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220923 | Exp:", experimento),
            xaxis = list(title = "Linea de Tiempo (new_time)"),
            hovermode = "x unified")
 }
@@ -71,7 +69,6 @@ graficar_serie1 <- function(datos, experimento) {
 # Series de Tiempo CURRENT B,C,D-----------------------------
 graficar_serie2 <- function(datos, experimento) {
   
-  # Filtrar el experimento  y ordenar por tiempo
   df_exp <- datos %>% 
     filter(exp == experimento) %>% 
     arrange(new_time)
@@ -103,9 +100,8 @@ graficar_serie2 <- function(datos, experimento) {
                 text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
     layout(yaxis = list(title = "Corriente (D)"))
   
-  # Unir las tres gráficas en un solo panel alineado por el tiempo
   subplot(p1, p2, p3, nrows = 3, shareX = TRUE, titleY = TRUE) %>%
-    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220909 | Exp:", experimento),
+    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220923 | Exp:", experimento),
            xaxis = list(title = "Linea de Tiempo (new_time)"),
            hovermode = "x unified")
 }
@@ -114,7 +110,6 @@ graficar_serie2 <- function(datos, experimento) {
 # Series de Tiempo VOLTAGE B,C,D --------------------
 graficar_serie3 <- function(datos, experimento) {
   
-  # Filtrar el experimento  y ordenar por tiempo
   df_exp <- datos %>% 
     filter(exp == experimento) %>% 
     arrange(new_time)
@@ -128,7 +123,7 @@ graficar_serie3 <- function(datos, experimento) {
     add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_B,
                 marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
                 text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
-    layout(yaxis = list(title = "Voltage (B)"))
+    layout(yaxis = list(title = "Voltaje (B)"))
   
   # Grafica 2: Voltage C
   p2 <- plot_ly(df_exp, x = ~new_time) %>%
@@ -136,7 +131,7 @@ graficar_serie3 <- function(datos, experimento) {
     add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_C,
                 marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
                 text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
-    layout(yaxis = list(title = "Voltage (C)"))
+    layout(yaxis = list(title = "Voltaje (C)"))
   
   # Grafica 3: Voltage D
   p3 <- plot_ly(df_exp, x = ~new_time) %>%
@@ -144,11 +139,10 @@ graficar_serie3 <- function(datos, experimento) {
     add_markers(data = df_fallas, x = ~new_time, y = ~VOLTAGE_D,
                 marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
                 text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
-    layout(yaxis = list(title = "Voltage (D)"))
+    layout(yaxis = list(title = "Voltaje (D)"))
   
-  # Unir las tres gráficas en un solo panel alineado por el tiempo
   subplot(p1, p2, p3, nrows = 3, shareX = TRUE, titleY = TRUE) %>%
-    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220909 | Exp:", experimento),
+    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220923 | Exp:", experimento),
            xaxis = list(title = "Linea de Tiempo (new_time)"),
            hovermode = "x unified")
 }
@@ -192,17 +186,20 @@ matriz_cor <- function(datos_dia, experimento) {
     filter(anomaly == -1) %>% 
     select(all_of(vars_criticas))
   
-  matriz_sin_anomalias <- crear_matriz(df_sanos, paste("Matriz sin anomalias - Exp:", experimento, "- 09 sep"))
-  matriz_anomalias <- crear_matriz(df_anomalos, paste("Matriz con anomalias - Exp:", experimento, "- 09 sep"))
+  matriz_sin_anomalias <- crear_matriz(df_sanos, paste("Matriz sin anomalias - Exp:", experimento, "- 23 sep"))
   
-  return(list(matriz_sin_anomalias = matriz_sin_anomalias, matriz_anomalias = matriz_anomalias))
-  
+  if(nrow(df_anomalos) > 0) {
+    matriz_anomalias <- crear_matriz(df_anomalos, paste("Matriz con anomalias - Exp:", experimento, "- 23 sep"))
+    return(list(matriz_sin_anomalias = matriz_sin_anomalias, matriz_anomalias = matriz_anomalias))
+  } else {
+    return(list(matriz_sin_anomalias = matriz_sin_anomalias))
+  }
 }
 
 
 
 # ==============================================================================
-# EXPERIMENTO E01
+# EXPERIMENTO E01 (Metroplus)
 
 # Series de tiempo
 serie1_E01 <- graficar_serie1(datos_dia, "E01")
@@ -212,7 +209,7 @@ serie3_E01 <- graficar_serie3(datos_dia, "E01")
 print(serie1_E01)
 print(serie2_E01)
 print(serie3_E01)
-# Respecto a este experimento, ¿la bitacora reporto?: No
+# Respecto a este experimento, ¿la bitacora reporto?: No hay registros.
 
 
 # Matrices de correlacion
@@ -220,4 +217,23 @@ matrices_E01 <- matriz_cor(datos_dia, "E01")
 print(matrices_E01$matriz_sin_anomalias)
 print(matrices_E01$matriz_anomalias)
 
+
+# ==============================================================================
+# EXPERIMENTO E02 (Laboratorio)
+
+# Series de tiempo
+serie1_E02 <- graficar_serie1(datos_dia, "E02")
+serie2_E02 <- graficar_serie2(datos_dia, "E02")
+serie3_E02 <- graficar_serie3(datos_dia, "E02")
+
+print(serie1_E02)
+print(serie2_E02)
+print(serie3_E02)
+# Respecto a este experimento, ¿la bitacora reporto?: No hay registros.
+
+
+# Matrices de correlacion
+matrices_E02 <- matriz_cor(datos_dia, "E02")
+print(matrices_E02$matriz_sin_anomalias)
+print(matrices_E02$matriz_anomalias)
 
