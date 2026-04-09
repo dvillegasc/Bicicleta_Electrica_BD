@@ -16,7 +16,6 @@ cat("Total de datos anómalos:", nrow(datos_anomalos))
 # ==============================================================================
 # Graficos intercativos
 
-# Función para crear los scatter plots con súper-detalle en el hover
 crear_scatter_anomalia <- function(data, variable_y, titulo_y) {
   plot_ly(data = data, 
           x = ~anomaly_score, 
@@ -64,9 +63,6 @@ print(scatter_corriente)
 # bicicleta va a velocidad constante por inercia, en este contexto de anomalia 
 # puede representar un corte repentino de energia o una falla del 
 # sensor asi como un apagon del sistema.
-
-# ==============================================================================
-# Matriz de correlacion con datos anomalos
 
 
 

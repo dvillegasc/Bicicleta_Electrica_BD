@@ -9,12 +9,16 @@ library(plotly)
 datos_fallas <- read.csv("C:/Users/davil/Desktop/data_bicicleta_con_fallas.csv", sep = ";")
 
 
+
 datos_fallas <- datos_fallas %>%
   mutate(fila_original = row_number())
 
 #Filtro anomalos
 datos_anomalos <- datos_fallas %>%
   filter(anomaly == -1)
+
+datos_Nanomalos <- datos_fallas %>%
+  filter(anomaly == 1)
 
 
 # ==============================================================================
@@ -42,7 +46,31 @@ print(plot_motor)
 
 
 # ==============================================================================
-# Matriz de correlacion - GENERAL
+# Matrices de correlacion - GENERALES
+
+# ----------------------------------------------------
+
+#Sin anomalias
+datos_general <- datos_Nanomalos %>% 
+  select(-anomaly, -fila_original) 
+
+matriz_general <- cor(datos_general, use = "complete.obs")
+df_corr_general <- as.data.frame(as.table(matriz_general))
+
+plot_general <- ggplot(df_corr_general, aes(x = Var1, y = Var2, fill = Freq)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1, 1)) +
+  geom_text(aes(label = round(Freq, 2)), color = "black", size = 2.5) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        axis.text.y = element_text(size = 8)) +
+  labs(title = "Matriz Global - Sin Anomalías", x = "", y = "", fill = "Corr")
+
+print(plot_general)
+
+# ----------------------------------------------------
+
+#Con anomalias
 
 datos_general <- datos_anomalos %>% 
   select(-anomaly, -fila_original) 
@@ -60,6 +88,7 @@ plot_general <- ggplot(df_corr_general, aes(x = Var1, y = Var2, fill = Freq)) +
   labs(title = "Matriz Global - Anomalías", x = "", y = "", fill = "Corr")
 
 print(plot_general)
+
 
 
 # ==============================================================================
