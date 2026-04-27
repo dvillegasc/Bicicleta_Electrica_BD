@@ -25,6 +25,59 @@ nrow(numfallas)
 # ==============================================================================
 # Funciones para las Series de Tiempo 
 
+
+# Serie de tiempo - Variables Temperatura-----------------------------------
+graficar_serie4 <- function(datos, experimento) {
+  
+  # Filtrar el experimento  y ordenar por tiempo
+  df_exp <- datos %>% 
+    filter(exp == experimento) %>% 
+    arrange(new_time)
+  
+  df_fallas <- df_exp %>% 
+    filter(anomaly == -1)
+  
+  # Grafica 1: Temperatura A
+  p1 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~TEMPERATURE_A, name = "Temp A", line = list(color = 'orange')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_A,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Temperatura (A)"))
+  
+  # Grafica 2: Temperatura B
+  p2 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~TEMPERATURE_B, name = "Temp B", line = list(color = 'green')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_B,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Temperatura (B)"))
+  
+  # Grafica 3: Temperatura C
+  p3 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~TEMPERATURE_C, name = "Temp C", line = list(color = 'blue')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_C,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Temperatura (C)"))
+  
+  # Grafica 4: Temperatura D
+  p4 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~TEMPERATURE_D, name = "Temp D", line = list(color = 'blue')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_D,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Temperatura (D)"))
+  
+  # Unir las tres gráficas en un solo panel alineado por el tiempo
+  subplot(p1, p2, p3, p4, nrows = 4, shareX = TRUE, titleY = TRUE) %>%
+    layout(title = paste("La Serie de Tiempo del Día - Fecha: 20220909 | Exp:", experimento),
+           xaxis = list(title = "Linea de Tiempo (new_time)"),
+           hovermode = "x unified")
+}
+
+
+
 # Serie de tiempo - Variables A-----------------------------------
 graficar_serie1 <- function(datos, experimento) {
   
@@ -199,10 +252,12 @@ matriz_cor <- function(datos_dia, experimento) {
 serie1_E01 <- graficar_serie1(datos_dia, "E01")
 serie2_E01 <- graficar_serie2(datos_dia, "E01")
 serie3_E01 <- graficar_serie3(datos_dia, "E01")
+serie4_E01 <- graficar_serie4(datos_dia, "E01")
 
 print(serie1_E01)
 print(serie2_E01)
 print(serie3_E01)
+print(serie4_E01)
 # Respecto a este experimento, ¿la bitacora reporto?: No
 
 
@@ -218,10 +273,12 @@ print(matrices_E01$matriz_sin_anomalias)
 serie1_E02 <- graficar_serie1(datos_dia, "E02")
 serie2_E02 <- graficar_serie2(datos_dia, "E02")
 serie3_E02 <- graficar_serie3(datos_dia, "E02")
+serie4_E02 <- graficar_serie4(datos_dia, "E02")
 
 print(serie1_E02)
 print(serie2_E02)
 print(serie3_E02)
+print(serie4_E02)
 # Respecto a este experimento, ¿la bitacora reporto?: No
 
 
