@@ -103,16 +103,40 @@ graficar_serie3 <- function(df_exp, experimento, fecha_str) {
 graficar_serie4 <- function(df_exp, experimento, fecha_str) {
   df_fallas <- df_exp %>% filter(anomaly == -1)
   
-  p1 <- plot_ly(df_exp, x = ~new_time) %>% add_lines(y = ~TEMPERATURE_A, name = "Temp A", line = list(color = 'orange')) %>% add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_A, marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia") %>% layout(yaxis = list(title = "Temp (A)"))
-  p2 <- plot_ly(df_exp, x = ~new_time) %>% add_lines(y = ~TEMPERATURE_B, name = "Temp B", line = list(color = 'green')) %>% add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_B, marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia") %>% layout(yaxis = list(title = "Temp (B)"))
-  p3 <- plot_ly(df_exp, x = ~new_time) %>% add_lines(y = ~TEMPERATURE_C, name = "Temp C", line = list(color = 'blue')) %>% add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_C, marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia") %>% layout(yaxis = list(title = "Temp (C)"))
-  p4 <- plot_ly(df_exp, x = ~new_time) %>% add_lines(y = ~TEMPERATURE_D, name = "Temp D", line = list(color = 'blue')) %>% add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_D, marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia") %>% layout(yaxis = list(title = "Temp (D)"))
+  p1 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~TEMPERATURE_A, name = "Temp A", line = list(color = 'orange')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_A,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Temp (A)"))
+  
+  p2 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~TEMPERATURE_B, name = "Temp B", line = list(color = 'green')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_B,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Temp (B)"))
+  
+  p3 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~TEMPERATURE_C, name = "Temp C", line = list(color = 'blue')) %>%
+    add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_C,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Temp (C)"))
+  
+  p4 <- plot_ly(df_exp, x = ~new_time) %>%
+    add_lines(y = ~TEMPERATURE_D, name = "Temp D", line = list(color = 'purple')) %>% 
+    add_markers(data = df_fallas, x = ~new_time, y = ~TEMPERATURE_D,
+                marker = list(color = 'red', size = 6, symbol = 'x'), name = "Anomalia",
+                text = ~paste("Score:", round(anomaly_score, 4)), hoverinfo = "text") %>%
+    layout(yaxis = list(title = "Temp (D)"))
   
   subplot(p1, p2, p3, p4, nrows = 4, shareX = TRUE, titleY = TRUE) %>%
     layout(title = paste("Temperaturas - Fecha:", fecha_str, "| Exp:", experimento),
            xaxis = list(title = "Linea de tiempo (new_time)"),
            hovermode = "x unified")
 }
+
 
 crear_matriz <- function(df, titulo) {
   matriz_cor <- cor(df, use = "complete.obs")
