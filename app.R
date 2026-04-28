@@ -110,7 +110,7 @@ graficar_serie4 <- function(df_exp, experimento, fecha_str) {
   
   subplot(p1, p2, p3, p4, nrows = 4, shareX = TRUE, titleY = TRUE) %>%
     layout(title = paste("Temperaturas - Fecha:", fecha_str, "| Exp:", experimento),
-           xaxis = list(title = "Linea de Tiempo (new_time)"),
+           xaxis = list(title = "Linea de tiempo (new_time)"),
            hovermode = "x unified")
 }
 
@@ -129,34 +129,34 @@ crear_matriz <- function(df, titulo) {
     labs(title = titulo, x = "", y = "", fill = "Corr")
 }
 
-# ==============================================================================
+# =========================================================================
 #               Ui
 
 ui <- fluidPage(
   
-  titlePanel("Diagnóstico Predictivo - Bicicletas Eléctricas"),
+  titlePanel("Bicicletas eléctricas"),
   
   sidebarLayout(
     sidebarPanel(
-      selectInput("sel_fecha", "1. Seleccionar Fecha:", 
+      selectInput("sel_fecha", "1. Seleccionar fecha:", 
                   choices = sort(unique(datos_bici$fecha), decreasing = TRUE)),
       
       uiOutput("ui_experimentos"),
       
-      selectInput("sel_grafica", "3. ¿Qué deseas analizar?",
+      selectInput("sel_grafica", "3. Seleccionar grafica",
                   choices = c("Serie 1 (Variables A)",
                               "Serie 2 (Corrientes B, C, D)",
                               "Serie 3 (Voltajes B, C, D)",
                               "Serie 4 (Temperaturas)",
-                              "Matriz Correlación: Funcionamiento Normal",
-                              "Matriz Correlación: Anomalías")),
+                              "Matriz correlación: Sin anomalias",
+                              "Matriz correlación: Con anomalías")),
       
-      actionButton("btn_generar", "Procesar y Generar Gráfica", class = "btn-primary", width = "100%"),
+      actionButton("btn_generar", "Graficar", class = "btn-primary", width = "100%"),
       
       hr(),
       
       div(style = "background-color: #f8f9fa; padding: 15px; border-radius: 5px;",
-          h4("Resumen del Día", style = "margin-top: 0;"),
+          h4("Resumen del día", style = "margin-top: 0;"),
           htmlOutput("info_resumen")
       )
     ),
@@ -167,7 +167,7 @@ ui <- fluidPage(
   )
 )
 
-# ==============================================================================
+# ============================================================================
 #        Server
 
 server <- function(input, output, session) {
@@ -179,7 +179,7 @@ server <- function(input, output, session) {
   output$ui_experimentos <- renderUI({
     req(datos_dia())
     exps_disponibles <- unique(datos_dia()$exp)
-    selectInput("sel_exp", "2. Seleccionar Experimento:", choices = exps_disponibles)
+    selectInput("sel_exp", "2. Seleccionar experimento:", choices = exps_disponibles)
   })
   
   output$info_resumen <- renderUI({
@@ -192,8 +192,8 @@ server <- function(input, output, session) {
     
     HTML(paste0(
       "<b>Ruta(s):</b> ", rutas, "<br>",
-      "<b>Exp. Ejecutados:</b> ", experimentos, "<br>",
-      "<b>Total de Anomalías (Día):</b> ", anomalias_totales
+      "<b>Experimentos:</b> ", experimentos, "<br>",
+      "<b>Total de anomalías (Día):</b> ", anomalias_totales
     ))
   })
   
