@@ -163,7 +163,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("sel_fecha", "1. Seleccionar fecha:", 
-                  choices = sort(unique(datos_bici$fecha), decreasing = TRUE)),
+                  choices = sort(unique(datos_bici$fecha), decreasing = FALSE)),
       
       uiOutput("ui_experimentos"),
       
@@ -245,7 +245,7 @@ server <- function(input, output, session) {
     } else if (tipo == "Serie 4 (Temperaturas)") {
       return(graficar_serie4(df_exp, input$sel_exp, fecha_str))
       
-    } else if (tipo == "Matriz Correlación: Funcionamiento Normal") {
+    } else if (tipo == "Matriz correlación: Sin anomalias") {
       # Matriz Sanos
       vars_crit <- c("CURRENT_A_CALC", "CURRENT_B_CALC", "CURRENT_C_CALC", "CURRENT_D_CALC",
                      "VOLTAGE_A", "VOLTAGE_B", "VOLTAGE_C", "VOLTAGE_D", 
@@ -256,7 +256,7 @@ server <- function(input, output, session) {
       titulo <- paste("Matriz Sin Anomalías -", fecha_str, "- Exp:", input$sel_exp)
       return(crear_matriz(df_sanos, titulo))
       
-    } else if (tipo == "Matriz Correlación: Anomalías") {
+    } else if (tipo == "Matriz correlación: Con anomalías") {
       # Matriz Anomalos 
       vars_crit <- c("CURRENT_A_CALC", "CURRENT_B_CALC", "CURRENT_C_CALC", "CURRENT_D_CALC",
                      "VOLTAGE_A", "VOLTAGE_B", "VOLTAGE_C", "VOLTAGE_D", 
@@ -264,7 +264,7 @@ server <- function(input, output, session) {
       df_anomalos <- df_exp %>% filter(anomaly == -1) %>% select(all_of(vars_crit))
       
       # Validación: Si no hay anomalías, se detiene y muestra este mensaje
-      validate(need(nrow(df_anomalos) > 1, "No hubo suficientes anomalías en este experimento para generar una matriz de error."))
+      validate(need(nrow(df_anomalos) > 1, "No hubo suficientes anomalías en este experimento para generar una matriz de anomalías."))
       
       titulo <- paste("Matriz CON Anomalías -", fecha_str, "- Exp:", input$sel_exp)
       return(crear_matriz(df_anomalos, titulo))
