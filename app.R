@@ -158,12 +158,13 @@ crear_matriz <- function(df, titulo) {
 
 ui <- fluidPage(
   
-  titlePanel(tags$h2("Análisis de datos en sistemas de micromovilidad eléctrica", style = "font-weight: bold; color: #2E7D32;")),
+  titlePanel(tags$h2("Visualización interactiva y detección de anomalías en micromovilidad eléctrica mediante Shiny", 
+                     style = "font-weight: bold; color: #2E7D32;")),
   
   sidebarLayout(
     sidebarPanel(
       # Logo de la bicicleta
-      img(src = "bicicleta-electrica.png", width = "120px", style = "display: block; margin: 0 auto 20px auto;"),
+      img(src = "Bici_png.jpg", width = "425px", style = "display: block; margin: 0 auto 20px auto;"),
       
       selectInput("sel_fecha", "1. Seleccionar fecha:", 
                   choices = sort(unique(datos_bici$fecha), decreasing = FALSE)),
@@ -212,15 +213,18 @@ server <- function(input, output, session) {
   output$info_resumen <- renderUI({
     df <- datos_dia()
     req(nrow(df) > 0)
+    req(input$sel_exp)
     
     rutas <- paste(unique(df$lugar), collapse = ", ")
     experimentos <- paste(unique(df$exp), collapse = ", ")
     anomalias_totales <- nrow(df %>% filter(anomaly == -1))
     
+    anomalias_exp <- nrow(df %>% filter(exp == input$sel_exp, anomaly == -1))
+    
     HTML(paste0(
       "<b>Ruta(s):</b> ", rutas, "<br>",
       "<b>Experimentos:</b> ", experimentos, "<br>",
-      "<b>Total de anomalías registradas:</b> ", anomalias_totales
+      "<b>Anomalías registradas en ", input$sel_exp, ":</b> ", anomalias_exp
     ))
   })
   
